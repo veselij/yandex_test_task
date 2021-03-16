@@ -1,0 +1,5 @@
+fastapi==0.63
+uvicorn==0.13.4
+pydantic==1.8.1
+motor==2.3.1
+pytz==2021.1
