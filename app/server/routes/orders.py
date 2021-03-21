@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Body, status, Response
 from fastapi.encoders import jsonable_encoder
-from server.database import add_order, retrieve_courier, retrieve_orders, update_order
-from server.models.orders import OrderSchemaList, ResponseOrder
+from server.database import add_obect, orders_collection
+from server.models.orders import OrderSchemaList, ResponseOrder, OrderSchemaForComplete
 from server.models.couriers import CourierSchemaForAssign
-from server.constant import COURIER_MAX_WEIGHT
+from server.assign_manager import ManagerOfOrders
+from server.completion_manager import OrderComplitionManager
 
 
 router = APIRouter()
@@ -11,27 +12,24 @@ router = APIRouter()
 
 @router.post('/', response_description='Added order data to database', status_code=status.HTTP_201_CREATED)
 async def add_order_data(order_schemas: OrderSchemaList = Body(...)):
-    ids = []
-    for order_schema in order_schemas.data:
-        order = jsonable_encoder(order_schema)
-        id = await add_order(order)
-        ids.append({'id': id})
+    ids = await add_obect(order_schemas.data, orders_collection)
     return ResponseOrder(ids)
 
 @router.post('/assign', response_description='Assign orders for courier', status_code=status.HTTP_200_OK)
 async def assign_orders(courier: CourierSchemaForAssign, response: Response):
-    courier_id = courier.courier_id
-    courier_obj = await retrieve_courier(courier_id)
-    if not courier_obj:
-        response.status_code = status.HTTP_400_BAD_REQUEST
-        return
-    max_weight = COURIER_MAX_WEIGHT[courier_obj['courier_type']]
-    regions = courier_obj['regions']
-    orders_ids = []
-    async for order in await retrieve_orders(max_weight, regions):
-        orders_ids.append(order['order_id'])
-    if orders_ids:
-        assign_time = await update_order(orders_ids, courier_id)
-        resp_ids = [{'id':i} for i in orders_ids]
-        return {"orders": resp_ids, "assign_time":  assign_time}
-    return {"orders": []}
+    m = ManagerOfOrders(courier_id = courier.courier_id)
+    res = await m.get_result()
+    if res:
+        return res
+    response.status_code = status.HTTP_400_BAD_REQUEST
+    return
+
+@router.post('/complete', response_description='Complete order', status_code=status.HTTP_400_BAD_REQUEST)
+async def complete_order(order: OrderSchemaForComplete, response: Response):
+    order = jsonable_encoder(order)
+    ocm = OrderComplitionManager(order['courier_id'], order['order_id'], order['complete_time'])
+    completed_order = await ocm.compleate_order()
+    if completed_order:
+        response.status_code=status.HTTP_200_OK
+        return {"order_id": order['order_id']}
+    return

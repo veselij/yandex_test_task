@@ -10,9 +10,10 @@ class OrderSchema(BaseModel):
     region: int = Field(..., ge=0)
     delivery_hours: List[str] = Field(...)
     assign_time: Optional[datetime] = None
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
+    complete_time: Optional[datetime] = None
     courier_id: Optional[int] = None
+    basket_id: str = None
+    processing:int = 0
 
     class Config:
         schema_extra = {
@@ -30,5 +31,12 @@ class OrderSchemaList(BaseModel):
 
 
 def ResponseOrder(data):
-    return {'orders': data}
+    ids = []
+    for d in data:
+        ids.append({'id': d['order_id']})
+    return {'orders': ids}
 
+class OrderSchemaForComplete(BaseModel):
+    courier_id: int = Field(..., ge=0)
+    order_id: int = Field(..., ge=0)
+    complete_time: str = Field(...)
