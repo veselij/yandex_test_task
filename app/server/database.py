@@ -1,7 +1,7 @@
 import motor.motor_asyncio
 import asyncio
 import pymongo
-from server.constant import MONGO_DETAILS
+from app.server.constant import MONGO_DETAILS
 from fastapi.encoders import jsonable_encoder
 import datetime as dt
 import pytz
@@ -61,16 +61,12 @@ async def assign_order(ids, courier_id, basket_id):
 async def complete_order_db(order_id, complete_time):
     await orders_collection.update_one({'order_id': order_id}, {'$set': {'complete_time': complete_time}})
 
-async def create_or_get_basket(courier_id: int, courier_type: str):
-    basket = await basket_collection.find_one({'courier_id': courier_id}, {'basket_status': 0})
-    if not basket:
-        new_basket = await basket_collection.insert_one({'courier_id': courier_id, 'n_orders': 0, 'n_orders_finished': 0, 'basket_status': 0, 'start_courier_type': courier_type, 'last_delivery_time': None, 'actual_weight': 0, 'orders': []})
-        return await basket_collection.find_one({'_id': new_basket.inserted_id})
-    else:
-        return basket
+async def create_basket(courier_id: int, courier_type: str):
+    new_basket = await basket_collection.insert_one({'courier_id': courier_id, 'n_orders': 0, 'n_orders_finished': 0, 'basket_status': 0, 'start_courier_type': courier_type, 'last_delivery_time': None, 'actual_weight': 0, 'orders': []})
+    return await basket_collection.find_one({'_id': new_basket.inserted_id})
 
-async def get_basket(courier_id: int):
-    basket = await basket_collection.find_one({'courier_id': courier_id, 'basket_status': 0})
+async def get_basket(basket):
+    basket = await basket_collection.find_one({'_id': basket})
     if basket:
         return basket
 

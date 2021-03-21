@@ -1,5 +1,5 @@
-from server.database import retrieve_courier, retrieve_orders, assign_order, set_processing_orders, unset_processing_order, create_or_get_basket, update_basket
-from server.constant import COURIER_MAX_WEIGHT
+from app.server.database import retrieve_courier, retrieve_orders, assign_order, set_processing_orders, unset_processing_order, create_basket, update_basket
+from app.server.constant import COURIER_MAX_WEIGHT
 import re
 
 class ManagerOfOrders:
@@ -36,7 +36,7 @@ class ManagerOfOrders:
             await unset_processing_order(ids)
 
     async def get_basket(self):
-        self.basket = await create_or_get_basket(self.courier_id, self.courier['courier_type'])
+        self.basket = await create_basket(self.courier_id, self.courier['courier_type'])
 
     async def assigned_orders(self):
         orders_ids = []

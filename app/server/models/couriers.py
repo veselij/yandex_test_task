@@ -40,7 +40,7 @@ class CourierSchemaList(BaseModel):
 
 
 
-def ResponseCourier(data):
+def response_courier_ids(data):
     ids = []
     for d in data:
         ids.append({'id': d['courier_id']})
@@ -48,4 +48,13 @@ def ResponseCourier(data):
 
 class CourierSchemaForAssign(BaseModel):
     courier_id: int = Field(..., ge=0)
+
+def response_courier_data(data):
+    response = dict(data)
+    response.pop('_id')
+    response.pop('delivery_times_per_regions')
+    response.pop('n_deliverys_per_regions')
+    if sum(data['n_deliverys_per_regions'].values()) == 0:
+        response.pop('rating')
+    return response
 

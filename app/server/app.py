@@ -1,10 +1,10 @@
 from fastapi import FastAPI, Request, status
-from server.routes.couriers import router as courier_router
+from app.server.routes.couriers import router as courier_router
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from server.models.couriers import CourierSchema
-from server.routes.orders import router as order_router
+from app.server.models.couriers import CourierSchema
+from app.server.routes.orders import router as order_router
 
 
 app = FastAPI()
