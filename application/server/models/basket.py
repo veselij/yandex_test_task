@@ -11,4 +11,5 @@ class BasketSchema(BaseModel):
     last_delivery_time: Optional[datetime] = None
     actual_weight: float = 0
     orders: List[int] = None
+    created_time: Optional[datetime] = None
 

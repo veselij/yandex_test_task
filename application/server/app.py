@@ -1,10 +1,10 @@
 from fastapi import FastAPI, Request, status
-from app.server.routes.couriers import router as courier_router
+from server.routes.couriers import router as courier_router
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from app.server.models.couriers import CourierSchema
-from app.server.routes.orders import router as order_router
+from server.models.couriers import CourierSchema
+from server.routes.orders import router as order_router
 
 
 app = FastAPI()
@@ -25,7 +25,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             bad_ids.append({'id': data[f'{id}_id']})
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content=jsonable_encoder({"validation_errors": {f"{id}s": bad_ids}}),
+            content=jsonable_encoder({"validation_error": {f"{id}s": bad_ids}}),
         )
     else:
         return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,content=jsonable_encoder({"detail": exc.errors(), "body": exc.body}),)

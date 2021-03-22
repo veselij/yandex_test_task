@@ -7,7 +7,7 @@ from server.models.couriers import CourierSchemaList, response_courier_ids, resp
 router = APIRouter()
 
 
-@router.post('/', response_description='Added courier data to database', status_code=status.HTTP_201_CREATED)
+@router.post('', response_description='Added courier data to database', status_code=status.HTTP_201_CREATED)
 async def add_courier_data(courier_schemas: CourierSchemaList = Body(...)):
     ids = await add_obect(courier_schemas.data, couriers_collection)
     return response_courier_ids(ids)

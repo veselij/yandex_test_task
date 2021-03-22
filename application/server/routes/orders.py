@@ -10,7 +10,7 @@ from server.completion_manager import OrderComplitionManager
 router = APIRouter()
 
 
-@router.post('/', response_description='Added order data to database', status_code=status.HTTP_201_CREATED)
+@router.post('', response_description='Added order data to database', status_code=status.HTTP_201_CREATED)
 async def add_order_data(order_schemas: OrderSchemaList = Body(...)):
     ids = await add_obect(order_schemas.data, orders_collection)
     return ResponseOrder(ids)

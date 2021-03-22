@@ -1,5 +1,5 @@
-from app.server.database import retrieve_courier, retrieve_orders, assign_order, set_processing_orders, unset_processing_order, create_basket, update_basket
-from app.server.constant import COURIER_MAX_WEIGHT
+from server.database import retrieve_courier, retrieve_orders, assign_order, set_processing_orders, unset_processing_order, create_basket, update_basket
+from server.constant import COURIER_MAX_WEIGHT
 import re
 
 class ManagerOfOrders:
@@ -18,8 +18,8 @@ class ManagerOfOrders:
 
     @staticmethod
     async def check_intervals(interval_courier: tuple, interval_order: tuple) -> bool:
-        r = range(interval_order[0], interval_order[1]+1)
-        if interval_courier[0] in r and interval_courier[1] in r:
+        r = range(interval_courier[0], interval_courier[1]+1)
+        if interval_order[0] in r and interval_order[1] in r:
             return True
         return False
 
@@ -55,7 +55,9 @@ class ManagerOfOrders:
                     unlock_ids.append(order['order_id'])
         if orders_ids:
             self.assign_time = await assign_order(orders_ids, self.courier_id, self.basket['_id'])
-            await update_basket(self.basket['_id'], {'actual_weight': self.basket['actual_weight'], 'n_orders': self.basket['n_orders'], 'orders': self.basket['orders']})
+            if not self.basket['created_time']:
+                self.basket['created_time'] = self.assign_time
+            await update_basket(self.basket['_id'], {'actual_weight': self.basket['actual_weight'], 'n_orders': self.basket['n_orders'], 'orders': self.basket['orders'], 'created_time': self.basket['created_time']})
         return unlock_ids
 
     async def delivery_time_check(self, order) -> bool:
@@ -78,7 +80,8 @@ class ManagerOfOrders:
             to_unlock_order_ids = await self.assigned_orders()
             await self.unlock_orders(to_unlock_order_ids)
             if self.basket['orders']:
-                return {"orders": self.basket['orders'], "assign_time": self.assign_time}
+                ids = [{"id": i} for i in self.basket['orders']]
+                return {"orders": ids, "assign_time": self.basket['created_time'].replace('+00:00', 'Z')}
             else:
                 return {"orders": []}
         return

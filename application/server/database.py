@@ -1,7 +1,7 @@
 import motor.motor_asyncio
 import asyncio
 import pymongo
-from app.server.constant import MONGO_DETAILS
+from server.constant import MONGO_DETAILS
 from fastapi.encoders import jsonable_encoder
 import datetime as dt
 import pytz
@@ -21,6 +21,7 @@ basket_collection.create_index([('courier_id', pymongo.ASCENDING), ('basket_stat
 
 async def add_obect(object_data: list, collection):
     ids = []
+    obj = None
     for data in object_data:
         data = jsonable_encoder(data)
         try:
@@ -54,7 +55,7 @@ async def unset_processing_order(ids: list) -> None:
     orders_collection.update_many({'order_id': {'$in': ids}}, {'$set': {'processing': 0, 'courier_id': None}})
 
 async def assign_order(ids, courier_id, basket_id):
-    assign_time = dt.datetime.now(tz=pytz.utc).isoformat()
+    assign_time = dt.datetime.now(tz=pytz.utc).isoformat(timespec='seconds')
     order = await orders_collection.update_many({'order_id': {'$in': ids}}, {'$set': {'assign_time': assign_time, 'courier_id': courier_id, 'basket_id': basket_id}})
     return assign_time
 
@@ -62,8 +63,11 @@ async def complete_order_db(order_id, complete_time):
     await orders_collection.update_one({'order_id': order_id}, {'$set': {'complete_time': complete_time}})
 
 async def create_basket(courier_id: int, courier_type: str):
-    new_basket = await basket_collection.insert_one({'courier_id': courier_id, 'n_orders': 0, 'n_orders_finished': 0, 'basket_status': 0, 'start_courier_type': courier_type, 'last_delivery_time': None, 'actual_weight': 0, 'orders': []})
-    return await basket_collection.find_one({'_id': new_basket.inserted_id})
+    basket = await basket_collection.find_one({'courier_id': courier_id}, {'basket_status': 0})
+    if not basket:
+        new_basket = await basket_collection.insert_one({'courier_id': courier_id, 'n_orders': 0, 'n_orders_finished': 0, 'basket_status': 0, 'start_courier_type': courier_type, 'last_delivery_time': None, 'actual_weight': 0, 'orders': [], 'created_time': None})
+        return await basket_collection.find_one({'_id': new_basket.inserted_id})
+    return basket
 
 async def get_basket(basket):
     basket = await basket_collection.find_one({'_id': basket})
