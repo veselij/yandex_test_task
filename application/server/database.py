@@ -19,11 +19,13 @@ orders_collection.create_index('order_id', unique=True)
 basket_collection = database.get_collection('basket_collection')
 basket_collection.create_index([('courier_id', pymongo.ASCENDING), ('basket_status', pymongo.ASCENDING)])
 
-async def add_obect(object_data: list, collection):
+async def add_obect(object_data: list, collection, extra_fields:dict=None):
     ids = []
     obj = None
     for data in object_data:
         data = jsonable_encoder(data)
+        if extra_fields:
+            data.update(extra_fields)
         try:
             obj = await collection.insert_one(data)
         except asyncio.CancelledError:
@@ -48,15 +50,19 @@ async def retrieve_orders(max_weight: float, regions: list, courier_id: int) -> 
     orders = orders_collection.find({'region': {'$in': regions}, 'weight': {'$lte': max_weight} , 'processing': 1, 'complete_time': None, 'courier_id': courier_id, 'assign_time': None}, sort=[('weight', pymongo.DESCENDING )])
     return orders
 
+async def retrieve_courier_orders(courier_id):
+    orders = orders_collection.find({'courier_id': courier_id, 'complete_time': None, 'processing': 2}, sort=[('weight', pymongo.DESCENDING)])
+    return orders
+
 async def set_processing_orders(max_weight: float, regions: list, courier_id: int) -> None:
     orders_collection.update_many({'region': {'$in': regions}, 'weight': {'$lte': max_weight}, 'processing': 0}, {'$set': {'processing': 1, 'courier_id': courier_id}})
 
 async def unset_processing_order(ids: list) -> None:
-    orders_collection.update_many({'order_id': {'$in': ids}}, {'$set': {'processing': 0, 'courier_id': None}})
+    orders_collection.update_many({'order_id': {'$in': ids}}, {'$set': {'processing': 0, 'courier_id': None, 'basket_id': None, "assign_time": None}})
 
 async def assign_order(ids, courier_id, basket_id):
     assign_time = dt.datetime.now(tz=pytz.utc).isoformat(timespec='seconds')
-    order = await orders_collection.update_many({'order_id': {'$in': ids}}, {'$set': {'assign_time': assign_time, 'courier_id': courier_id, 'basket_id': basket_id}})
+    order = await orders_collection.update_many({'order_id': {'$in': ids}}, {'$set': {'assign_time': assign_time, 'courier_id': courier_id, 'basket_id': basket_id, 'processing': 2}})
     return assign_time
 
 async def complete_order_db(order_id, complete_time):

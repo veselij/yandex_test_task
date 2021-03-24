@@ -1,11 +1,14 @@
-from server.database import retrieve_courier, retrieve_orders, assign_order, set_processing_orders, unset_processing_order, create_basket, update_basket
+from server.database import retrieve_courier, retrieve_orders, assign_order, set_processing_orders, unset_processing_order, create_basket, update_basket, retrieve_courier_orders, update_basket, update_courier
 from server.constant import COURIER_MAX_WEIGHT
 import re
 
 class ManagerOfOrders:
 
-    def __init__(self, courier_id: int) -> None:
+    def __init__(self, courier_id: int, new_courier: dict = None) -> None:
         self.courier_id = courier_id
+        self.orders_ids = []
+        self.unlock_ids = []
+        self.new_courier = new_courier
 
     async def set_weight_and_region(self):
         self.max_weight = COURIER_MAX_WEIGHT[self.courier['courier_type']]
@@ -18,8 +21,10 @@ class ManagerOfOrders:
 
     @staticmethod
     async def check_intervals(interval_courier: tuple, interval_order: tuple) -> bool:
-        r = range(interval_courier[0], interval_courier[1]+1)
-        if interval_order[0] in r and interval_order[1] in r:
+        range_courier = set(range(interval_courier[0], interval_courier[1] + 1))
+        range_order = range(interval_order[0], interval_order[1] + 1)
+        intersec = range_courier.intersection(range_order)
+        if intersec:
             return True
         return False
 
@@ -38,27 +43,31 @@ class ManagerOfOrders:
     async def get_basket(self):
         self.basket = await create_basket(self.courier_id, self.courier['courier_type'])
 
+    async def check_order(self, order):
+        if await self.delivery_time_check(order):
+            self.basket['actual_weight'] += order['weight']
+            self.basket['n_orders'] += 1
+            self.basket['orders'].append(order['order_id'])
+            self.orders_ids.append(order['order_id'])
+        else:
+            self.unlock_ids.append(order['order_id'])
+
     async def assigned_orders(self):
-        orders_ids = []
-        unlock_ids = []
+        i = 0
         orders = await retrieve_orders(self.max_weight, self.regions, self.courier_id)
         async for order in orders:
             if order['weight'] + self.basket['actual_weight'] > self.max_weight:
-                unlock_ids.append(order['order_id'])
+                self.unlock_ids.append(order['order_id'])
+            elif order['weight'] + self.basket['actual_weight'] == self.max_weight:
+                await self.check_order(order)
+                break
             else:
-                if await self.delivery_time_check(order):
-                    self.basket['actual_weight'] += order['weight']
-                    self.basket['n_orders'] += 1
-                    self.basket['orders'].append(order['order_id'])
-                    orders_ids.append(order['order_id'])
-                else:
-                    unlock_ids.append(order['order_id'])
-        if orders_ids:
-            self.assign_time = await assign_order(orders_ids, self.courier_id, self.basket['_id'])
+                await self.check_order(order)
+        if self.orders_ids:
+            self.assign_time = await assign_order(self.orders_ids, self.courier_id, self.basket['_id'])
             if not self.basket['created_time']:
                 self.basket['created_time'] = self.assign_time
             await update_basket(self.basket['_id'], {'actual_weight': self.basket['actual_weight'], 'n_orders': self.basket['n_orders'], 'orders': self.basket['orders'], 'created_time': self.basket['created_time']})
-        return unlock_ids
 
     async def delivery_time_check(self, order) -> bool:
         delivery_possible = False
@@ -77,11 +86,61 @@ class ManagerOfOrders:
             await self.get_basket()
             await self.set_weight_and_region()
             await self.lock_orders()
-            to_unlock_order_ids = await self.assigned_orders()
-            await self.unlock_orders(to_unlock_order_ids)
+            await self.assigned_orders()
+            await self.unlock_orders(self.unlock_ids)
             if self.basket['orders']:
                 ids = [{"id": i} for i in self.basket['orders']]
                 return {"orders": ids, "assign_time": self.basket['created_time'].replace('+00:00', 'Z')}
             else:
                 return {"orders": []}
         return
+
+    async def deassign_ordes(self):
+        await self.get_courier()
+        if self.courier:
+            await self.get_basket()
+            await self.set_weight_and_region()
+            for k, v in self.new_courier.items():
+                if k == 'regions' and v:
+                    delta_region = list(set(self.courier['regions']) - set(self.new_courier['regions']))
+                if v:
+                    self.courier[k] = v
+            async for order in await retrieve_courier_orders(self.courier_id):
+                for key, val in self.new_courier.items():
+                        if key == 'working_hours':
+                            if not await self.delivery_time_check(order):
+                                if order['order_id'] not in self.unlock_ids:
+                                    self.unlock_ids.append(order['order_id'])
+                                    self.basket['n_orders'] -= 1
+                                    self.basket['actual_weight'] -= order['weight']
+                                    self.basket['orders'].remove(order['order_id'])
+                        elif key == 'regions':
+                            if order['region'] in delta_region:
+                                if order['order_id'] not in self.unlock_ids:
+                                    self.unlock_ids.append(order['order_id'])
+                                    self.basket['n_orders'] -= 1
+                                    self.basket['actual_weight'] -= order['weight']
+                                    self.basket['orders'].remove(order['order_id'])
+            if self.new_courier['courier_type']:
+                new_max_wieght = COURIER_MAX_WEIGHT[self.new_courier['courier_type']]
+                delta_weight = new_max_wieght - self.max_weight
+                if delta_weight < 0:
+                    async for order in await retrieve_courier_orders(self.courier_id):
+                        if self.basket['actual_weight'] > self.new_max_wieght:
+                            self.unlock_ids.append(order['order_id'])
+                            self.basket['actual_weight'] -= order['weight']
+                        else:
+                            break
+            if self.unlock_ids:
+                await self.unlock_orders(self.unlock_ids)
+            basket_new = dict(self.basket)
+            basket_new.pop('_id')
+            courier_new = dict(self.courier)
+            courier_new.pop('_id')
+            await update_basket(self.basket['_id'], basket_new)
+            await update_courier(self.courier['_id'], courier_new)
+            return True
+        return False
+
+
+
