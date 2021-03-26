@@ -1,5 +1,5 @@
 from typing import Optional, List, Dict
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 from server.constant import COURIER_TYPE
 from pydantic import Extra
 from enum import Enum
@@ -11,35 +11,22 @@ class CourierType(str, Enum):
     car = 'car'
 
 
-class Courier(BaseModel):
-    id: int = Field(...)
-
-    class Config:
-        extra = Extra.forbid
+class Courier(BaseModel, extra=Extra.forbid):
+    id: int = Field(..., ge=0)
 
 
-class CouriersIds(BaseModel):
-    couriers: List[Courier]
-
-    class Config:
-        extra = Extra.forbid
-
-
-class CouriersIdsAP(BaseModel):
+class CouriersIds(BaseModel, extra=Extra.forbid):
     couriers: List[Courier]
 
 
-class CouriersValidErr(BaseModel):
-    validation_error: CouriersIdsAP = Field(...)
-
-    class Config:
-        extra = Extra.forbid
+class CouriersValidErr(BaseModel, extra=Extra.forbid):
+    validation_error: CouriersIds = Field(...)
 
 
 class CourierItem(BaseModel):
-    courier_id: int = Field(...)
+    courier_id: int = Field(..., ge=0)
     courier_type: CourierType = Field(...)
-    regions: List[int] = Field(...)
+    regions: List[int] = Field(..., ge=0)
     working_hours: List[str] = Field(...)
 
     class Config:
@@ -54,36 +41,27 @@ class CourierItem(BaseModel):
         extra = Extra.forbid
 
 
-class CouriersPostRequest(BaseModel):
+class CouriersPostRequest(BaseModel, extra=Extra.forbid):
     data: List[CourierItem] = Field(...)
 
-    class Config:
-        extra = Extra.forbid
 
-
-class CourierGetResponse(BaseModel):
-    courier_id: int = Field(...)
+class CourierGetResponse(BaseModel, extra=Extra.forbid):
+    courier_id: int = Field(..., ge=0)
     courier_type: CourierType = Field(...)
-    regions: List[int] = Field(...)
+    regions: List[int] = Field(..., ge=0)
     working_hours: List[str] = Field(...)
+    earnings: float = Field(...)
     rating: Optional[float] = 0
-    earnings: Optional[float] = 0
-
-    class Config:
-        extra = Extra.forbid
 
 
-class CourierUpdateRequest(BaseModel):
+class CourierUpdateRequest(BaseModel, extra=Extra.forbid):
     courier_type: Optional[CourierType]
     regions: Optional[List[int]]
     working_hours: Optional[List[str]]
 
-    class Config:
-        extra = Extra.forbid
 
-
-class CourierSchemaForAssign(BaseModel):
-    courier_id: int = Field(...)
+class CourierSchemaForAssign(BaseModel, extra=Extra.forbid):
+    courier_id: int = Field(..., ge=0)
 
 
 def response_courier_ids(data):

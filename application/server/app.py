@@ -15,7 +15,7 @@ app.include_router(order_router,  prefix='/orders')
 
 @app.get('/')
 async def read_root():
-    return {'message': 'Hello word!'}
+    return {'message': 'Candy Delivery API'}
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -36,7 +36,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 def del_openapi_redundunt_elements(openaip):
     if isinstance(openaip, dict):
         for key in list(openaip.keys()):
-            if key in ['422', 'summary', 'operationId']:
+            if key in ['422', 'summary', 'operationId', 'HTTPValidationError', 'ValidationError']:
                 del openaip[key]
             else:
                 del_openapi_redundunt_elements(openaip[key])

@@ -4,26 +4,16 @@ from pydantic import Extra
 from datetime import datetime
 
 
-class Order(BaseModel):
-    id: int = Field(...)
+class Order(BaseModel, extra=Extra.forbid):
+    id: int = Field(..., ge=0)
 
 
-class OrdersIds(BaseModel):
+class OrdersIds(BaseModel, extra=Extra.forbid):
     orders: List[Order]
 
-    class Config:
-        extra = Extra.forbid
 
-
-class OrdersIdsAP(BaseModel):
-    couriers: List[Order]
-
-
-class OrdersValidErr(BaseModel):
-    validation_error: OrdersIdsAP = Field(...)
-
-    class Config:
-        extra = Extra.forbid
+class OrdersValidErr(BaseModel, extra=Extra.forbid):
+    validation_error: OrdersIds = Field(...)
 
 
 class OrderItem(BaseModel):
@@ -44,7 +34,7 @@ class OrderItem(BaseModel):
         extra = Extra.forbid
 
 
-class OrdersPostRequest(BaseModel):
+class OrdersPostRequest(BaseModel, extra=Extra.forbid):
     data: Optional[List[OrderItem]] = Field(...)
 
 
@@ -55,29 +45,21 @@ def response_order_ids(data):
     return {'orders': ids}
 
 
-class OrdersCompletePostRequest(BaseModel):
+class OrdersCompletePostRequest(BaseModel, extra=Extra.forbid):
     courier_id: int = Field(...)
     order_id: int = Field(...)
     complete_time: str = Field(...)
 
-    class Config:
-        extra = Extra.forbid
 
-
-class OrdersCompletePostResponse(BaseModel):
+class OrdersCompletePostResponse(BaseModel, extra=Extra.forbid):
     order_id:int = Field(...)
 
-    class Config:
-        extra = Extra.forbid
 
-
-class OrdersAssignPostRequest(BaseModel):
+class OrdersAssignPostRequest(BaseModel, extra=Extra.forbid):
     courier_id: int = Field(...)
 
-    class Config:
-        extra = Extra.forbid
 
-
-class OrdersAssignPostResponse(BaseModel):
+class OrdersAssignPostResponse(BaseModel, extra=Extra.forbid):
     orders: List[Order]
     assign_time: Optional[str]
+
