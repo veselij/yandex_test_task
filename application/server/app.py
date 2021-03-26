@@ -21,14 +21,20 @@ async def read_root():
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     if isinstance(exc.body, dict) and 'data' in exc.body.keys():
         bad_ids = []
+        uniq_errs = []
         for err in exc.errors():
+            print(err)
             data = exc.body['data'][err['loc'][2]]
             id = [k.replace('_id', '') for k in data.keys() if k.endswith('_id')][0]
             bad_ids.append({'id': data[f'{id}_id']})
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content=jsonable_encoder({"validation_error": {f"{id}s": bad_ids}}),
+            uniq_errs.append(err['type']) if err['type'] not in uniq_errs else uniq_errs
+        if 'value_error.extra' in uniq_errs or 'value_error.missing' in uniq_errs:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content=jsonable_encoder({"validation_error": {f"{id}s": bad_ids}}),
         )
+        else:
+            return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,content=jsonable_encoder({"detail": exc.errors(), "body": exc.body}),)
     else:
         return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,content=jsonable_encoder({"detail": exc.errors(), "body": exc.body}),)
 

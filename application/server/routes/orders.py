@@ -13,8 +13,11 @@ router = APIRouter()
 @router.post('', description='Import orders', status_code=status.HTTP_201_CREATED, response_model=OrdersIds, response_description='Created', responses={400: {"description": "Bad request", "model": OrdersValidErr}})
 async def add_order_data(order_schemas: OrdersPostRequest = None):
     add_fields = {'assign_time': None, 'complete_time': None, 'courier_id': None, 'basket_id': None, 'processing': 0}
-    ids = await add_obect(order_schemas.data, orders_collection, add_fields)
-    return response_order_ids(ids)
+    if order_schemas:
+        ids = await add_obect(order_schemas.data, orders_collection, add_fields)
+        return response_order_ids(ids)
+    else:
+        raise HTTPException(status_code=400)
 
 @router.post('/assign', status_code=status.HTTP_200_OK, description='Assign orders to a courier by id', response_description='OK', response_model=OrdersAssignPostResponse, responses={400: {"description": "Bad request"}})
 async def assign_orders(courier: OrdersAssignPostRequest):

@@ -11,8 +11,11 @@ router = APIRouter()
 @router.post('', status_code=status.HTTP_201_CREATED, description='Import couriers', response_model=CouriersIds, response_description='Created', responses={400: {"description": "Bad request", "model": CouriersValidErr}})
 async def add_courier_data(courier_schemas: CouriersPostRequest = None):
     add_fields = {'delivery_times_per_regions': {}, 'n_deliverys_per_regions': {}, 'earnings': 0, 'rating': 0}
-    ids = await add_obect(courier_schemas.data, couriers_collection, add_fields)
-    return response_courier_ids(ids)
+    if courier_schemas:
+        ids = await add_obect(courier_schemas.data, couriers_collection, add_fields)
+        return response_courier_ids(ids)
+    else:
+        raise HTTPException(status_code=400)
 
 @router.get('/{courier_id}', status_code=status.HTTP_200_OK, description='Get courier info', response_description='OK', response_model=CourierGetResponse, responses={404: {"description": "Not found"}})
 async def get_courier_data(courier_id: int):
