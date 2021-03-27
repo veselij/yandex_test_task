@@ -45,13 +45,13 @@ class CouriersPostRequest(BaseModel, extra=Extra.forbid):
     data: List[CourierItem] = Field(...)
 
 
-class CourierGetResponse(BaseModel, extra=Extra.forbid):
+class CourierGetResponse(BaseModel, extra=Extra.allow):
     courier_id: int = Field(..., ge=0)
     courier_type: CourierType = Field(...)
     regions: List[int] = Field(..., ge=0)
     working_hours: List[str] = Field(...)
     earnings: float = Field(...)
-    rating: Optional[float] = 0
+    #rating: Optional[float]
 
 
 class CourierUpdateRequest(BaseModel, extra=Extra.forbid):
@@ -64,23 +64,23 @@ class CourierSchemaForAssign(BaseModel, extra=Extra.forbid):
     courier_id: int = Field(..., ge=0)
 
 
-def response_courier_ids(data):
+async def response_courier_ids(data):
     ids = []
     for d in data:
         ids.append({'id': d['courier_id']})
     return {'couriers': ids}
 
 
-def response_courier_data(data):
+async def response_courier_data(data):
     response = dict(data)
     response.pop('_id')
     response.pop('delivery_times_per_regions')
-    response.pop('n_deliverys_per_regions')
-    if sum(data['n_deliverys_per_regions'].values()) == 0:
+    if not data['n_deliverys_per_regions']:
         response.pop('rating')
+    response.pop('n_deliverys_per_regions')
     return response
 
-def response_courier_item(data):
+async def response_courier_item(data):
     response = dict(data)
     response.pop('_id')
     response.pop('delivery_times_per_regions')

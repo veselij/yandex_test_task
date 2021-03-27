@@ -159,9 +159,18 @@ def test_get_courier():
 def test_get_courier2():
     response = client.get('/couriers/2')
     assert response.status_code == 200
-    assert response.json() == {"courier_id": 2, "courier_type": "bike", "regions": [22], "working_hours": ["09:00-18:00"], "rating": 0, "earnings": 0  }
+    assert response.json() == {"courier_id": 2, "courier_type": "bike", "regions": [22], "working_hours": ["09:00-18:00"], "earnings": 0  }
 
 def test_patch_courier():
     response = client.patch('/couriers/1', data='''{"regions": [100], "courier_type": "bike"}''')
     assert response.status_code == 200
     assert response.json() == {"courier_id": 1, "courier_type": "bike", "regions": [100], "working_hours": ["11:35-14:05", "09:00-11:00"]}
+
+
+def test_delete_all_data_from_db_after():
+    couriers_collection.delete_many({})
+    orders_collection.delete_many({})
+    basket_collection.delete_many({})
+    assert couriers_collection.count_documents({}) == 0
+    assert orders_collection.count_documents({}) == 0
+    assert basket_collection.count_documents({}) == 0

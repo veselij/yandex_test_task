@@ -38,7 +38,7 @@ class OrdersPostRequest(BaseModel, extra=Extra.forbid):
     data: Optional[List[OrderItem]] = Field(...)
 
 
-def response_order_ids(data):
+async def response_order_ids(data):
     ids = []
     for d in data:
         ids.append({'id': d['order_id']})

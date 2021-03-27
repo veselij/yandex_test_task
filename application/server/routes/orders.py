@@ -15,7 +15,7 @@ async def add_order_data(order_schemas: OrdersPostRequest = None):
     add_fields = {'assign_time': None, 'complete_time': None, 'courier_id': None, 'basket_id': None, 'processing': 0}
     if order_schemas:
         ids = await add_obect(order_schemas.data, orders_collection, add_fields)
-        return response_order_ids(ids)
+        return await response_order_ids(ids)
     else:
         raise HTTPException(status_code=400)
 

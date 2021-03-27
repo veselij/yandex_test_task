@@ -1,6 +1,7 @@
 from server.database import retrieve_courier, retrieve_orders, assign_order, set_processing_orders, unset_processing_order, create_basket, update_basket, retrieve_courier_orders, update_basket, update_courier
 from server.constant import COURIER_MAX_WEIGHT
 import re
+from time import sleep
 
 class ManagerOfOrders:
 
@@ -9,6 +10,7 @@ class ManagerOfOrders:
         self.orders_ids = []
         self.unlock_ids = []
         self.new_courier = new_courier
+        self.modified = 0
 
     async def set_weight_and_region(self):
         self.max_weight = COURIER_MAX_WEIGHT[self.courier['courier_type']]
@@ -34,11 +36,10 @@ class ManagerOfOrders:
             self.courier = courier
 
     async def lock_orders(self):
-        await set_processing_orders(self.max_weight, self.regions, self.courier_id)
+        self.modified = await set_processing_orders(self.max_weight, self.regions, self.courier_id)
 
-    async def unlock_orders(self, ids):
-        if ids:
-            await unset_processing_order(ids)
+    async def unlock_orders(self):
+        await unset_processing_order(self.unlock_ids)
 
     async def get_basket(self):
         self.basket = await create_basket(self.courier_id, self.courier['courier_type'])
@@ -53,14 +54,13 @@ class ManagerOfOrders:
             self.unlock_ids.append(order['order_id'])
 
     async def assigned_orders(self):
-        i = 0
         orders = await retrieve_orders(self.max_weight, self.regions, self.courier_id)
-        async for order in orders:
+        for order in await orders.to_list(length=self.modified):
+            print(order)
             if order['weight'] + self.basket['actual_weight'] > self.max_weight:
                 self.unlock_ids.append(order['order_id'])
             elif order['weight'] + self.basket['actual_weight'] == self.max_weight:
                 await self.check_order(order)
-                break
             else:
                 await self.check_order(order)
         if self.orders_ids:
@@ -87,7 +87,8 @@ class ManagerOfOrders:
             await self.set_weight_and_region()
             await self.lock_orders()
             await self.assigned_orders()
-            await self.unlock_orders(self.unlock_ids)
+            if self.unlock_ids:
+                await self.unlock_orders()
             if self.basket['orders']:
                 ids = [{"id": i} for i in self.basket['orders']]
                 return {"orders": ids, "assign_time": self.basket['created_time'].replace('+00:00', 'Z')}
@@ -132,7 +133,7 @@ class ManagerOfOrders:
                         else:
                             break
             if self.unlock_ids:
-                await self.unlock_orders(self.unlock_ids)
+                await self.unlock_orders()
             basket_new = dict(self.basket)
             basket_new.pop('_id')
             courier_new = dict(self.courier)
