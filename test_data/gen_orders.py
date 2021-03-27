@@ -1,7 +1,7 @@
 import random as r
 
 
-N = 1000
+N = 10000
 
 print('''{"data":[''')
 for i in range(1, N):

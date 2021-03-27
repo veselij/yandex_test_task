@@ -2,7 +2,7 @@ import random as r
 
 
 couriers = ["foot", "bike", "car"]
-N = 100
+N = 10000
 
 print('''{"data":[''')
 for i in range(1, N):
