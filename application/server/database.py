@@ -55,8 +55,8 @@ async def retrieve_courier_orders(courier_id):
     return orders
 
 async def set_processing_orders(max_weight: float, regions: list, courier_id: int) -> None:
-    count = await orders_collection.count_documents({'region': {'$in': regions}, 'weight': {'$lte': max_weight}, 'processing': 0})
     modifed = await orders_collection.update_many({'region': {'$in': regions}, 'weight': {'$lte': max_weight}, 'processing': 0}, {'$set': {'processing': 1, 'courier_id': courier_id}})
+    count = await orders_collection.count_documents({'region': {'$in': regions}, 'weight': {'$lte': max_weight}, 'processing': 1, 'courier_id': courier_id})
     return count
 
 async def unset_processing_order(ids: list) -> None:

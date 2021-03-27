@@ -51,8 +51,7 @@ class OrderComplitionManager:
             delivery_time = await self.calc_delta_time(self.finish_time, self.order['assign_time'])
         n = 1
         if delivery_time <= 0:
-            delivery_time = 0
-            n = 0
+            return
         self.basket['last_delivery_time'] = self.finish_time
         if str(self.order['region']) not in self.courier['n_deliverys_per_regions'].keys():
             self.courier['n_deliverys_per_regions'][str(self.order['region'])] = n

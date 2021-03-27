@@ -140,9 +140,9 @@ class ManagerOfOrders:
                                 break
             if self.unlock_ids:
                 await self.unlock_orders()
-            if self.basket['n_orders'] == self.basket['n_orders_finished']:
-                self.basket['basket_status'] = 1
-                self.courier['earnings'] += 500*COURIER_K[self.basket['start_courier_type']]
+                if self.basket['n_orders'] == self.basket['n_orders_finished']:
+                    self.basket['basket_status'] = 1
+                    self.courier['earnings'] += 500*COURIER_K[self.basket['start_courier_type']]
             basket_new = dict(self.basket)
             basket_new.pop('_id')
             courier_new = dict(self.courier)
