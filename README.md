@@ -28,7 +28,7 @@ All configurations in application/constant.py file
 
 **Test**
 
-After installation you can test service py running _python -m pytest application/test.py_
+After installation you can test service py running from application folder _python3 -m pytest test.py_
 Do not run tests on production database (change MONGO_DETAILS in constant.py to test DB and reload server) - it will remove all data after test.
 
 **Setup**
