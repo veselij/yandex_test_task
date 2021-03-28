@@ -1,7 +1,7 @@
-from server.app import app
+from .main import app
 import pytest
 from fastapi.testclient import TestClient
-from server.constant import MONGO_DETAILS
+from .constant import MONGO_DETAILS
 from pymongo import MongoClient
 import datetime as dt
 import pytz

@@ -1,7 +1,7 @@
 import motor.motor_asyncio
 import asyncio
 import pymongo
-from server.constant import MONGO_DETAILS
+from constant import MONGO_DETAILS
 from fastapi.encoders import jsonable_encoder
 import datetime as dt
 import pytz

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 
 
 class BasketSchema(BaseModel):
@@ -8,8 +8,8 @@ class BasketSchema(BaseModel):
     n_orders_finished: int = 0
     basket_status: int = 0
     start_courier_type: str = None
-    last_delivery_time: Optional[datetime] = None
+    last_delivery_time: Optional[str] = None
     actual_weight: float = 0
     orders: List[int] = None
-    created_time: Optional[datetime] = None
+    created_time: Optional[str] = None
 

@@ -1,7 +1,6 @@
 from typing import Optional, List
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 from pydantic import Extra
-from datetime import datetime
 
 
 class Order(BaseModel, extra=Extra.forbid):

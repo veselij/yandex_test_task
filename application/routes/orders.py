@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Body, status, Response, HTTPException
+from fastapi import APIRouter, status, HTTPException
 from fastapi.encoders import jsonable_encoder
-from server.database import add_obect, orders_collection
-from server.models.orders import response_order_ids, OrdersIds, OrdersPostRequest, OrdersAssignPostRequest, OrdersCompletePostRequest, OrdersValidErr, OrdersAssignPostResponse, OrdersCompletePostResponse
-from server.models.couriers import CourierSchemaForAssign
-from server.assign_manager import ManagerOfOrders
-from server.completion_manager import OrderComplitionManager
+from database import add_obect, orders_collection
+from models.orders import response_order_ids, OrdersIds, OrdersPostRequest, OrdersAssignPostRequest, OrdersCompletePostRequest, OrdersValidErr, OrdersAssignPostResponse, OrdersCompletePostResponse
+from assign_manager import ManagerOfOrders
+from completion_manager import OrderComplitionManager
 
 
 router = APIRouter()

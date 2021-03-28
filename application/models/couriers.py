@@ -1,6 +1,6 @@
-from typing import Optional, List, Dict
+from typing import Optional, List
 from pydantic import BaseModel, Field
-from server.constant import COURIER_TYPE
+from constant import COURIER_TYPE
 from pydantic import Extra
 from enum import Enum
 
@@ -51,7 +51,6 @@ class CourierGetResponse(BaseModel, extra=Extra.allow):
     regions: List[int] = Field(..., ge=0)
     working_hours: List[str] = Field(...)
     earnings: float = Field(...)
-    #rating: Optional[float]
 
 
 class CourierUpdateRequest(BaseModel, extra=Extra.forbid):

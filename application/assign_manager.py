@@ -1,7 +1,7 @@
-from server.database import retrieve_courier, retrieve_orders, assign_order, set_processing_orders, unset_processing_order, create_basket, update_basket, retrieve_courier_orders, update_basket, update_courier
-from server.constant import COURIER_MAX_WEIGHT, COURIER_K
+from database import retrieve_courier, retrieve_orders, assign_order, set_processing_orders, unset_processing_order, create_basket, update_basket, retrieve_courier_orders, update_basket, update_courier
+from constant import COURIER_MAX_WEIGHT, COURIER_K
 import re
-from time import sleep
+
 
 class ManagerOfOrders:
 

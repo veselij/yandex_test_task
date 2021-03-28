@@ -21,18 +21,18 @@ Installation
 
 Configuration
 
-All configurations in application/server/constant.py file
-1. BIND_IP - IP adress of interface to listen on requests
-2. PORT - PORT to listen on
-3. COURIER_MAX_WEIGHT max weight per courier
-4. COURIER_K earning coefficient per courier
-5. MONGO_DETAILS - MongoDB connection string
+All configurations in application/constant.py file
+1. COURIER_MAX_WEIGHT max weight per courier
+2. COURIER_K earning coefficient per courier
+3. MONGO_DETAILS - MongoDB connection string
 
 Test
 
 After installation you can test service py running
-    pytest application/test.py
+    python -m pytest application/test.py
+Do not run tests on production database (change MONGO_DETAILS in constant.py to test DB and reload server) - it will remove all data after test.
 
 Setup
 
-To start service run follwing command
+To start service run follwing command inside application folder
+unvicorn main:app --host 0.0.0.0 --port 8080

@@ -1,7 +1,7 @@
-from server.database import retrieve_courier, retrieve_order, get_basket, complete_order_db, update_basket, update_courier
+from database import retrieve_courier, retrieve_order, get_basket, complete_order_db, update_basket, update_courier
 from dateutil import parser
 import datetime as dt
-from server.constant import COURIER_K
+from constant import COURIER_K
 
 
 class OrderComplitionManager:
