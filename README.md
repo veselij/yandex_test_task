@@ -16,7 +16,7 @@ All dependencies listed in _application/requirments.txt_
 
 1. Install and configure MongoDB according official documentation
 2. Install all requirements using pip
-_    pip install -r application/requirments.txt_
+_pip install -r application/requirments.txt_
 3. Make changes in configuration file if necessary
 
 **Configuration**
